@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/mniak/file-receiver/internal/templates"
 )
 
 type HTTPServer struct {
@@ -21,23 +23,28 @@ func (h *HTTPServer) Start() error {
 		Addr:    fmt.Sprintf(":%d", h.Port),
 		Handler: httpMux,
 	}
-	var err error
 	go func() {
 		log.Printf("Starting server on port %d", h.Port)
-		err = h.server.ListenAndServe()
+		h.server.ListenAndServe()
 	}()
-	return err
+	return nil
 }
 
-func (h *HTTPServer) Stop() error {
-	stopCtx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelFunc()
+func (h *HTTPServer) Stop(ctx context.Context) error {
 	if h.server != nil {
-		return h.server.Shutdown(stopCtx)
+		return h.server.Shutdown(ctx)
 	}
 	return nil
 }
 
 func (h *HTTPServer) rootEndpoint(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello File Receiver"))
+	switch r.Method {
+	case http.MethodPost:
+		if err := templates.Upload.Execute(w, nil); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }

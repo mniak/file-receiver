@@ -1,31 +1,33 @@
 package main
 
 import (
+	"context"
+
 	"github.com/kardianos/service"
-	"go.uber.org/multierr"
 )
 
 type Program struct {
-	HTTP *HTTPServer
+	HTTP       *HTTPServer
+	context    context.Context
+	cancelFunc func()
 }
 
 func NewProgram() *Program {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	prog := Program{
-		HTTP: &HTTPServer{},
+		HTTP:       &HTTPServer{},
+		context:    ctx,
+		cancelFunc: cancel,
 	}
 	return &prog
 }
 
 func (p *Program) Start(s service.Service) error {
-	var allErrors error
-	err := p.HTTP.Start()
-	multierr.AppendInto(&allErrors, err)
-	return allErrors
+	p.HTTP.Start()
+	return nil
 }
 
 func (p *Program) Stop(s service.Service) error {
-	var allErrors error
-	err := p.HTTP.Stop()
-	multierr.AppendInto(&allErrors, err)
-	return allErrors
+	return p.HTTP.Stop(p.context)
 }
