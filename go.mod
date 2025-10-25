@@ -4,9 +4,7 @@ go 1.25.0
 
 require (
 	github.com/kardianos/service v1.2.4
-	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.1
-	go.uber.org/multierr v1.11.0
 )
 
 require (

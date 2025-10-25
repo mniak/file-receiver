@@ -1,8 +1,8 @@
 package main
 
 import (
+	"context"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -17,7 +17,7 @@ func main() {
 		Use: "file-receiver",
 		Run: func(cmd *cobra.Command, args []string) {
 			if service.Interactive() {
-				cobra.CheckErr(RunSimple(program))
+				cobra.CheckErr(RunInteractive(program))
 			} else {
 				cobra.CheckErr(RunAsService(program))
 			}
@@ -28,6 +28,29 @@ func main() {
 	cmd.Execute()
 }
 
+func RunInteractive(program *Program) error {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT /*ctrl+c*/, syscall.SIGTERM /*kill*/)
+	defer stop()
+
+	svc := NotAService{}
+	err := program.Start(&svc)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		log.Println("Application is running. Press Ctrl+C or use VS Code stop button to shut down.")
+		s := <-ctx.Done()
+		log.Println("Shutdown signal received.", s)
+
+		program.Stop(&svc)
+	}()
+
+	<-ctx.Done()
+	log.Println("Exiting application.")
+	return nil
+}
+
 func RunAsService(program *Program) error {
 	svcConfig := service.Config{}
 	svc, err := service.New(program, &svcConfig)
@@ -35,19 +58,4 @@ func RunAsService(program *Program) error {
 		return err
 	}
 	return svc.Run()
-}
-
-func RunSimple(program *Program) error {
-	svc := NotAService{}
-	err := program.Start(&svc)
-	if err != nil {
-		return err
-	}
-
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGTERM)
-	sig := <-sigchan
-	log.Println("Stopping due to signal", sig)
-	program.Stop(&svc)
-	return nil
 }
