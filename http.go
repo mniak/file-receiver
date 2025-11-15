@@ -1,4 +1,4 @@
-package main
+package receivefiles
 
 import (
 	"fmt"
@@ -9,17 +9,7 @@ import (
 	"path/filepath"
 )
 
-type Server struct {
-	Flags Flags
-}
-
-func (srv *Server) run() {
-	http.HandleFunc("/", srv.uploadFormHandler)
-	http.HandleFunc("/submit", srv.fileUploadHandler)
-	http.ListenAndServe(fmt.Sprintf(":%d", srv.Flags.Port), nil)
-}
-
-func (srv *Server) uploadFormHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *App) uploadFormHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -42,7 +32,7 @@ func (srv *Server) uploadFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /upload/submit - Handles file upload
-func (srv *Server) fileUploadHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *App) fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -64,7 +54,7 @@ func (srv *Server) fileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	// Create destination file
-	dstPath := filepath.Join(srv.Flags.ReceivedFilesDir, handler.Filename)
+	dstPath := filepath.Join(srv.ReceivedFilesDir, handler.Filename)
 	dst, err := os.Create(dstPath)
 	if err != nil {
 		http.Error(w, "Error saving file", http.StatusInternalServerError)

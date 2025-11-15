@@ -1,21 +1,17 @@
-package main
+package cli
 
 import (
 	"fmt"
 	"os"
 
+	"receivefiles"
+
 	"github.com/mdp/qrterminal/v3"
 	"github.com/spf13/cobra"
 )
 
-type Flags struct {
-	Port             int
-	ReceivedFilesDir string
-}
-
 func main() {
-
-	var flags Flags
+	var flags receivefiles.App
 	cmd := cobra.Command{
 		Use: "receivefiles",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -24,8 +20,7 @@ func main() {
 			fmt.Printf("Acesse %s para enviar arquivos \n ou leia o QR Code abaixo\n", url)
 			showQRCode(url)
 
-			var server Server
-			server.run()
+			flags.Run()
 		},
 	}
 	cmd.Flags().IntVar(&flags.Port, "port", 10777, "HTTP port of the server")
