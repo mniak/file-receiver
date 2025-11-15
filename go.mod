@@ -3,6 +3,7 @@ module receivefiles
 go 1.25.2
 
 require (
+	github.com/kardianos/service v1.2.4
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/spf13/cobra v1.10.1
 )
