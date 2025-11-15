@@ -20,32 +20,45 @@ jobs:
             suffix: windows_amd64.exe
           - os: macos-latest
             suffix: darwin_amd64
+          - os: macos-latest
+            suffix: darwin_arm64
+            goarch: arm64
     
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Go
+    - name: Setup
       uses: actions/setup-go@v4
       with:
         go-version: 'stable'
 
-    - name: build-cli
-      run: go build -v -o receivefiles-cli_${{ matrix.suffix }} .
-    # - name: build-service
-    #   run: go build -v -o receivefiles-service_${{ matrix.service_binary_name }} ./service
+    - name: Build
+      run: |
+        if [ "${{ matrix.goarch }}" != "" ]; then
+          export GOARCH=${{ matrix.goarch }}
+        fi
+        go build -v -o receivefiles-cli_${{ matrix.suffix }} ./cli
+        go build -v -o receivefiles-svc_${{ matrix.suffix }} ./service
 
     - name: Test
       run: go test -v ./...
       
-    - name: Upload Artifact
+    - name: Upload CLI
       uses: actions/upload-artifact@v4
       with:
         name: receivefiles-cli_${{ matrix.suffix }}
         path: receivefiles-cli_${{ matrix.suffix }}
         retention-days: 30
 
+    - name: Upload Service
+      uses: actions/upload-artifact@v4
+      with:
+        name: receivefiles-svc_${{ matrix.suffix }}
+        path: receivefiles-svc_${{ matrix.suffix }}
+        retention-days: 30
+
   release:
-    needs: build
+    needs: Build
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'created'
     
@@ -60,7 +73,12 @@ jobs:
       with:
         files: |
           ./dist/receivefiles-cli_linux_amd64
+          ./dist/receivefiles-svc_linux_amd64
           ./dist/receivefiles-cli_windows_amd64.exe
+          ./dist/receivefiles-svc_windows_amd64.exe
           ./dist/receivefiles-cli_darwin_amd64
+          ./dist/receivefiles-svc_darwin_amd64
+          ./dist/receivefiles-cli_darwin_arm64
+          ./dist/receivefiles-svc_darwin_arm64
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
