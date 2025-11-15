@@ -1,0 +1,66 @@
+name: Build and Release
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            suffix: linux_amd64
+          - os: windows-latest
+            suffix: windows_amd64.exe
+          - os: macos-latest
+            suffix: darwin_amd64
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 'stable'
+
+    - name: build-cli
+      run: go build -v -o receivefiles-cli_${{ matrix.suffix }} .
+    # - name: build-service
+    #   run: go build -v -o receivefiles-service_${{ matrix.service_binary_name }} ./service
+
+    - name: Test
+      run: go test -v ./...
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: receivefiles-cli_${{ matrix.suffix }}
+        path: receivefiles-cli_${{ matrix.suffix }}
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./dist
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ./dist/receivefiles-cli_linux_amd64
+          ./dist/receivefiles-cli_windows_amd64.exe
+          ./dist/receivefiles-cli_darwin_amd64
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
