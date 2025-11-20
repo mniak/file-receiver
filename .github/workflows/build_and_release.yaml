@@ -35,14 +35,12 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
 
-    - name: Install tail
-      run: npm install -g tailwindcss @tailwindcss/cli
-
     - name: Build
       run: |
         if [ "${{ matrix.goarch }}" != "" ]; then
           export GOARCH=${{ matrix.goarch }}
         fi
+        alias tailwindcss="npx @tailwindcss/cli"
         go generate ./...
         go build -v -o receivefiles-cli_${{ matrix.suffix }} ./cmd/cli
         go build -v -o receivefiles-svc_${{ matrix.suffix }} ./cmd/service
