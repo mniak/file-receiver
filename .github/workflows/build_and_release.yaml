@@ -35,7 +35,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
 
-    - name: Install tail
+    - name: Install Tailwind CLI
       run: |
         npm install @tailwindcss/cli
         echo "${{ github.workspace }}/node_modules/.bin" >> $GITHUB_PATH
