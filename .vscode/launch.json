@@ -12,7 +12,8 @@
             "program": "${workspaceFolder}/cmd/cli",
             "args": [
                 "--port=10888",
-            ]
+            ],
+            "preLaunchTask": "Go Generate"
         }
     ]
 }
