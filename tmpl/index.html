@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -5,13 +6,68 @@
 </head>
 
 <body>
-  <h1>IASD Cidade das Flores</h1>
-  <h2>Enviar arquivo</h2>
-  <form action="/submit" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" />
-    <input class="px-6 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition" type="submit"
-      value="Enviar" />
-  </form>
+  <div class="flex items-center justify-center">
+
+    <div class="mx-auto w-full max-w-[550px] bg-white">
+      <form method="post" action="/submit" class="py-4 px-9">
+        <div class="mb-5">
+          <div class="mb-6 pt-4">
+            <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Enviar Arquivo para o Som</h2>
+
+            <!-- File upload box -->
+            <div
+              class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-all duration-300">
+              <!-- Icon for drag & drop -->
+              <svg class="w-16 h-16 text-blue-500 mb-4 transition-all duration-300" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+
+              <!-- Hidden file input -->
+              <input id="file-upload" type="file" name="file" class="hidden" autocomplete="off" />
+
+              <!-- Custom label for file upload -->
+              <label for="file-upload"
+                class="text-gray-600 cursor-pointer text-center hover:text-blue-600 transition-all duration-300">
+                <span class="block text-xl font-medium">Clique para selecionar</span>
+                <span class="block text-sm text-gray-400">Ou arraste o arquivo aqui</span>
+              </label>
+
+              <!-- File name display -->
+              <div id="file-name" class="mt-3 text-gray-700 text-sm font-medium hidden">No file selected</div>
+            </div>
+
+            <!-- Upload Button -->
+            <button id="upload-btn"
+              class="w-full mt-6 py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300"
+              disabled="disabled">Enviar</button>
+          </div>
+
+          <script>
+            console.log('script started');
+            const fileInput = document.getElementById('file-upload');
+            const fileNameDisplay = document.getElementById('file-name');
+            const uploadButton = document.getElementById('upload-btn');
+
+            // Display file name after selection
+            fileInput.addEventListener('change', () => {
+              console.log("file niput changed to", fileInput);
+              if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = fileInput.files[0].name;
+                fileNameDisplay.classList.remove('hidden');
+                uploadButton.removeAttribute('disabled');
+              } else {
+                fileNameDisplay.textContent = 'No file selected';
+                fileNameDisplay.classList.add('hidden');
+                uploadButton.setAttribute('disabled', 'true');
+              }
+            });
+            uploadButton.setAttribute('disabled', 'true');
+          </script>
+        </div>
+      </form>
+    </div>
 </body>
 
 </html>
+<script src="./static/script.js"></script>
