@@ -1,73 +1,119 @@
 package receivefiles
 
 import (
+	"context"
 	"fmt"
-	"html/template"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+
+	"receivefiles/tmpl"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
-func (srv *App) uploadFormHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	tmpl := `
-    <html>
-    <body>
-        <h1>IASD Cidade das Flores</h1>
-		<h2>Enviar arquivo</h2>
-        <form action="/submit" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" />
-            <input type="submit" value="Enviar" />
-        </form>
-    </body>
-    </html>`
-
-	t := template.Must(template.New("upload").Parse(tmpl))
-	t.Execute(w, nil)
+type HttpParams struct {
+	Port             int
+	ReceivedFilesDir string
+}
+type HttpService struct {
+	HttpParams
+	server *http.Server
+	finish <-chan error
 }
 
-// POST /upload/submit - Handles file upload
-func (srv *App) fileUploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+func (s *HttpService) Start() error {
+	os.MkdirAll(s.HttpParams.ReceivedFilesDir, os.ModePerm)
 
-	// Parse the multipart form
-	err := r.ParseMultipartForm(10 << 20) // Limit: 10MB
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		// Return JSON response
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	r.LoadHTMLFS(http.FS(tmpl.FS()), "*.html")
+	r.GET("/", s.uploadFormHandler)
+	r.POST("/submit", s.fileUploadHandler)
+
+	staticFS, err := fs.Sub(StaticFS, "static")
 	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
+		return errors.WithMessage(err, "failed to find /static in the embedded filesystem")
 	}
+	r.StaticFS("/static", http.FS(staticFS))
+	r.NoRoute(s.notFound)
 
-	// Get file from posted form-data
-	file, handler, err := r.FormFile("file")
+	addr := fmt.Sprintf(":%d", s.Port)
+	finishChan := make(chan error)
+	s.server = &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+	s.finish = finishChan
+
+	go func() {
+		s.server.ListenAndServe()
+		close(finishChan)
+	}()
+	return nil
+}
+
+func (s *HttpService) Wait() error {
+	return <-s.finish
+}
+
+func (s *HttpService) Stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return s.server.Shutdown(ctx)
+}
+
+func (s *HttpService) notFound(c *gin.Context) {
+	c.JSON(404, "not found")
+}
+
+func (s *HttpService) uploadFormHandler(c *gin.Context) {
+	c.HTML(200, "index.html", nil)
+}
+
+func (s *HttpService) fileUploadHandler(c *gin.Context) {
+	form, err := c.MultipartForm()
 	if err != nil {
-		http.Error(w, "Error retrieving file", http.StatusBadRequest)
+		c.Error(errors.WithMessage(err, "parse form"))
 		return
 	}
-	defer file.Close()
-
-	// Create destination file
-	dstPath := filepath.Join(srv.ReceivedFilesDir, handler.Filename)
-	dst, err := os.Create(dstPath)
-	if err != nil {
-		http.Error(w, "Error saving file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-
-	// Copy file contents
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		http.Error(w, "Error writing file", http.StatusInternalServerError)
+	files, ok := form.File["file"]
+	if !ok {
+		c.Error(errors.New("missing file"))
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded successfully: %s", handler.Filename)
+	for _, f := range files {
+		src, err := f.Open()
+		if err != nil {
+			c.Error(errors.WithMessage(err, "open file sent"))
+			return
+		}
+
+		dstPath := filepath.Join(s.ReceivedFilesDir, f.Filename)
+		dst, err := os.Create(dstPath)
+		if err != nil {
+			c.Error(errors.WithMessage(err, "create file on server"))
+			return
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, src)
+		if err != nil {
+			c.Error(errors.WithMessage(err, "write file"))
+			return
+		}
+
+	}
+	c.JSON(200, "File uploaded")
 }

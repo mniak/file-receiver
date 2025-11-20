@@ -13,22 +13,22 @@ var logger service.Logger
 type Service struct{}
 
 func (p *Service) Start(s service.Service) error {
-	app.Start()
-	return nil
+	return app.Start()
 }
 
 func (p *Service) Stop(s service.Service) error {
-	app.Stop()
-	return nil
+	return app.Stop()
 }
 
-var app receivefiles.App
+var app receivefiles.Service
 
 func main() {
-	app = receivefiles.App{
-		Port:             10777,
-		ReceivedFilesDir: `C:\Users\Win\Desktop\Arquivos Recebidos`,
-	}
+	app = receivefiles.NewApp(receivefiles.AppParams{
+		HttpParams: receivefiles.HttpParams{
+			Port:             10777,
+			ReceivedFilesDir: `C:\Users\Win\Desktop\Arquivos Recebidos`,
+		},
+	})
 
 	svcConfig := &service.Config{
 		Name:        "receivefiles",
