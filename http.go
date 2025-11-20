@@ -3,9 +3,9 @@ package receivefiles
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -27,26 +27,21 @@ type HttpService struct {
 }
 
 func (s *HttpService) Start() error {
-	os.MkdirAll(s.HttpParams.ReceivedFilesDir, os.ModePerm)
+	os.MkdirAll(s.ReceivedFilesDir, os.ModePerm)
 
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		// Return JSON response
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
 	r.LoadHTMLFS(http.FS(tmpl.FS()), "*.html")
-	r.GET("/", s.uploadFormHandler)
-	r.POST("/submit", s.fileUploadHandler)
 
+	r.Use(s.onError)
+	r.NoRoute(s.onNotFound)
 	staticFS, err := fs.Sub(StaticFS, "static")
 	if err != nil {
-		return errors.WithMessage(err, "failed to find /static in the embedded filesystem")
+		return errors.WithMessage(err, "failed to find static/ in the embedded fs")
 	}
 	r.StaticFS("/static", http.FS(staticFS))
-	r.NoRoute(s.notFound)
+
+	r.GET("/", s.getRoot)
+	r.POST("/submit", s.postSubmit)
 
 	addr := fmt.Sprintf(":%d", s.Port)
 	finishChan := make(chan error)
@@ -73,47 +68,44 @@ func (s *HttpService) Stop() error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *HttpService) notFound(c *gin.Context) {
+func (s *HttpService) onNotFound(c *gin.Context) {
 	c.JSON(404, "not found")
 }
 
-func (s *HttpService) uploadFormHandler(c *gin.Context) {
-	c.HTML(200, "index.html", nil)
+const qSuccessMessage = "sm"
+
+func (s *HttpService) getRoot(c *gin.Context) {
+	msg := c.Query(qSuccessMessage)
+	c.HTML(200, "index.html", map[string]any{
+		"SuccessText": msg,
+	})
 }
 
-func (s *HttpService) fileUploadHandler(c *gin.Context) {
-	form, err := c.MultipartForm()
+func (s *HttpService) postSubmit(c *gin.Context) {
+	f, err := c.FormFile("file")
 	if err != nil {
-		c.Error(errors.WithMessage(err, "parse form"))
+		c.Error(errors.WithMessage(err, "failed to get file"))
 		return
 	}
-	files, ok := form.File["file"]
-	if !ok {
-		c.Error(errors.New("missing file"))
+	dstPath := filepath.Join(s.ReceivedFilesDir, f.Filename)
+	err = c.SaveUploadedFile(f, dstPath)
+	if err != nil {
+		c.Error(errors.WithMessage(err, "failed to save file"))
 		return
-	}
-
-	for _, f := range files {
-		src, err := f.Open()
-		if err != nil {
-			c.Error(errors.WithMessage(err, "open file sent"))
-			return
-		}
-
-		dstPath := filepath.Join(s.ReceivedFilesDir, f.Filename)
-		dst, err := os.Create(dstPath)
-		if err != nil {
-			c.Error(errors.WithMessage(err, "create file on server"))
-			return
-		}
-		defer dst.Close()
-
-		_, err = io.Copy(dst, src)
-		if err != nil {
-			c.Error(errors.WithMessage(err, "write file"))
-			return
-		}
 
 	}
-	c.JSON(200, "File uploaded")
+	q := make(url.Values)
+	q.Add(qSuccessMessage, fmt.Sprintf("Arquivo '%s' enviado!", f.Filename))
+	c.Redirect(302, "/?"+q.Encode())
+}
+
+func (s *HttpService) onError(c *gin.Context) {
+	c.Next()
+	if len(c.Errors) > 0 {
+		err := c.Errors.Last().Err
+		c.JSON(http.StatusInternalServerError, map[string]any{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
 }
