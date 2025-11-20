@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"receivefiles"
 
@@ -14,12 +15,21 @@ func main() {
 	var p receivefiles.AppParams
 	cmd := cobra.Command{
 		Use: "receivefiles",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			p.ReceivedFilesDir, err = filepath.Abs(p.ReceivedFilesDir)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			app := receivefiles.NewApp(p)
 
 			url := "https://flores7.mniak.dev"
 			fmt.Printf("Access %s to send files\nor scan the QR Code below\n", url)
 			showQRCode(url)
+			fmt.Printf("The files will be stored on %s\n", p.ReceivedFilesDir)
 
 			cobra.CheckErr(app.Start())
 			cobra.CheckErr(app.Wait())
