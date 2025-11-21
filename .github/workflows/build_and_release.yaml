@@ -85,16 +85,17 @@ jobs:
           tree
           echo END TREE BEFORE
 
+          appname=receivefiles
           for dir in ./build/*; do
             artifact=$(basename "$dir")
             bin="$dir/receivefiles.bin"
             if [[ "$artifact" == *windows* ]]; then
-              out_name="${artifact}.zip"
-              cp "$bin" "$dir/receivefiles.exe"
+              out_name="${appname}${artifact}.zip"
+              mv "$bin" "$dir/receivefiles.exe"
               (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
             else
-              out_name="${artifact}.tar.gz"
-              cp "$bin" "$dir/receivefiles"
+              out_name="${appname}${artifact}.tar.gz"
+              mv "$bin" "$dir/receivefiles"
               (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
             fi
 
