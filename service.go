@@ -1,8 +1,9 @@
-package receivefiles
+package main
 
 import (
 	"sync"
 
+	"github.com/kardianos/service"
 	"go.uber.org/multierr"
 )
 
@@ -66,4 +67,20 @@ func (multi *MultiService) Stop() error {
 	}
 	wg.Wait()
 	return errs
+}
+
+func NewSystemService(s Service) service.Interface {
+	return &_SystemService{s}
+}
+
+type _SystemService struct {
+	Service
+}
+
+func (p *_SystemService) Start(s service.Service) error {
+	return p.Service.Start()
+}
+
+func (p *_SystemService) Stop(s service.Service) error {
+	return p.Service.Stop()
 }

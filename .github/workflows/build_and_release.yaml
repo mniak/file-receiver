@@ -51,24 +51,16 @@ jobs:
             export GOARCH=${{ matrix.goarch }}
           fi
           go generate ./...
-          go build -v -o receivefiles-cli_${{ matrix.suffix }} ./cmd/cli
-          go build -v -o receivefiles-svc_${{ matrix.suffix }} ./cmd/service
+          go build -v -o receivefiles_${{ matrix.suffix }} .
 
       - name: Test
         run: go test -v ./...
 
-      - name: Upload CLI
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: receivefiles-cli_${{ matrix.suffix }}
-          path: receivefiles-cli_${{ matrix.suffix }}
-          retention-days: 30
-
-      - name: Upload Service
-        uses: actions/upload-artifact@v4
-        with:
-          name: receivefiles-svc_${{ matrix.suffix }}
-          path: receivefiles-svc_${{ matrix.suffix }}
+          name: receivefiles_${{ matrix.suffix }}
+          path: receivefiles_${{ matrix.suffix }}
           retention-days: 30
 
   release:
@@ -86,13 +78,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./dist/receivefiles-cli_linux_amd64
-            ./dist/receivefiles-svc_linux_amd64
-            ./dist/receivefiles-cli_windows_amd64.exe
-            ./dist/receivefiles-svc_windows_amd64.exe
-            ./dist/receivefiles-cli_darwin_amd64
-            ./dist/receivefiles-svc_darwin_amd64
-            ./dist/receivefiles-cli_darwin_arm64
-            ./dist/receivefiles-svc_darwin_arm64
+            ./dist/receivefiles_linux_amd64
+            ./dist/receivefiles_windows_amd64.exe
+            ./dist/receivefiles_darwin_amd64
+            ./dist/receivefiles_darwin_arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

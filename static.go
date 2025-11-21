@@ -1,4 +1,4 @@
-package receivefiles
+package main
 
 import "embed"
 
