@@ -71,33 +71,27 @@ jobs:
         with:
           path: ./build
 
-      - name: Prepare build
+      - name: Compress files
         shell: bash
         run: |
+          tree build
           mkdir -p release
-          echo TREE BEFORE
-          tree
-          echo END TREE BEFORE
-
           appname=receivefiles
           for dir in ./build/*; do
             artifact=$(basename "$dir")
-            bin="$dir/receivefiles.bin"
+            bin="$dir/$appname.bin"
             if [[ "$artifact" == *windows* ]]; then
-              out_name="${appname}${artifact}.zip"
-              mv "$bin" "$dir/receivefiles.exe"
-              (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
+              out_name="$appname_$artifact.zip"
+              mv "$bin" "$dir/$appname.exe"
+              (cd "$dir" && zip "../../release/$out_name" "$appname.exe")
             else
-              out_name="${appname}${artifact}.tar.gz"
-              mv "$bin" "$dir/receivefiles"
-              (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
+              out_name="$appname_$artifact.tar.gz"
+              mv "$bin" "$dir/$appname"
+              (cd "$dir" && tar -czf "../../release/$out_name" "$appname")
             fi
-
             echo "Created: release/$out_name"
           done
-          echo TREE AFTER
-          tree
-          echo END TREE AFTER
+          tree release
 
       - name: Release
         uses: softprops/action-gh-release@v2
