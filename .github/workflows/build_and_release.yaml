@@ -12,23 +12,19 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
         os: 
-          - ubuntu-latest
-          # - windows-latest
-          # - macos-latest
+          - ubuntu
+          # - windows
+          # - macos
         include:
-          - os: ubuntu-latest
-            suffix: linux_amd64
-          # - os: windows-latest
-          #   suffix: windows_amd64.exe
-          # - os: macos-latest
-          #   suffix: darwin_amd64
-          # - os: macos-latest
-          #   suffix: darwin_arm64
-          #   goarch: arm64
+          - os: ubuntu
+          # - os: windows
+          # - os: macos
+          # - os: macos
+          #   arch: arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -50,20 +46,39 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          if [ "${{ matrix.goarch }}" != "" ]; then
-            export GOARCH=${{ matrix.goarch }}
+          if [ "${{ matrix.arch }}" != "" ]; then
+            export GOARCH=${{ matrix.arch }}
           fi
           go generate ./...
-          go build -v -o receivefiles .
+          go build -v -o receivefiles.bin .
 
       - name: Test
         run: go test -v ./...
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        if: github.event_name == 'release' && github.event.action == 'created'
+      - name: Upload
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: receivefiles
-          asset_name: receivefiles_${{ matrix.suffix }}
+          name: ${{ matrix.os }}_${{ matrix.arch }}
+          path: receivefiles.bin
+          retention-days: 30
+
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./assets
+
+      - name: prepare assets
+        run: |
+          echo TREE
+          tree
+          echo END TREE
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
