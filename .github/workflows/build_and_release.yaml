@@ -16,12 +16,12 @@ jobs:
     strategy:
       matrix:
         os: 
-          # - ubuntu
+          - ubuntu
           # - windows
-          - macos
+          # - macos
         arch:
-          # - amd64
-          - arm64
+          - amd64
+          # - arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -77,15 +77,15 @@ jobs:
           echo -----------------
 
           mkdir -p release
-          for dirpath in ./build/*; do
-            dir=$(basename "$dirpath")
+          for dir in ./build; do
+            base=$(basename "$dir")
             bin="$dir/receivefiles.bin"
             if [[ "$dir" == *windows* ]]; then
-              out_name="receivefiles_$dir.zip" 
+              out_name="receivefiles_$base.zip" 
               mv "$bin" "$dir/receivefiles.exe"
               (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
             else
-              out_name="receivefiles_$dir.tar.gz"
+              out_name="receivefiles_$base.tar.gz"
               mv "$bin" "$dir/receivefiles"
               (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
             fi
