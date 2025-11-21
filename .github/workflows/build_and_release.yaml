@@ -19,6 +19,9 @@ jobs:
           - ubuntu
           # - windows
           # - macos
+        arch:
+          - amd64
+          # - arm64
         include:
           - os: ubuntu
           # - os: windows
@@ -60,7 +63,7 @@ jobs:
         with:
           name: ${{ matrix.os }}_${{ matrix.arch }}
           path: receivefiles.bin
-          retention-days: 30
+          retention-days: 1
 
 
   release:
@@ -82,3 +85,6 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./assets
