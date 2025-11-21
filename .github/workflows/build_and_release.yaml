@@ -43,9 +43,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          if [ "${{ matrix.arch }}" != "" ]; then
-            export GOARCH=${{ matrix.arch }}
-          fi
+          export GOARCH=${{ matrix.arch }}
           go generate ./...
           go build -v -o receivefiles.bin .
 
