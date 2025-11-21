@@ -64,7 +64,7 @@ jobs:
           retention-days: 30
 
   release:
-    needs: Upload
+    needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'created'
 
@@ -81,3 +81,11 @@ jobs:
             *
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ./dist/*
+          file_glob: true
