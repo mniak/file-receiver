@@ -80,27 +80,22 @@ jobs:
       - name: Prepare build
         shell: bash
         run: |
+          mkdir -p release
           echo TREE BEFORE
           tree
           echo END TREE BEFORE
-          mkdir -p release
 
           for dir in ./build/*; do
             artifact=$(basename "$dir")
-
-            # Exemplo de artifact: ubuntu_amd64
-            os=$(echo "$artifact" | cut -d_ -f1)
-
             bin="$dir/receivefiles.bin"
-
-            if [[ "$os" == "windows" ]]; then
+            if [[ "$artifact" == *windows* ]]; then
               out_name="${artifact}.zip"
               cp "$bin" "$dir/receivefiles.exe"
-              (cd "$dir" && zip "../release/$out_name" "receivefiles.exe")
+              (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
             else
               out_name="${artifact}.tar.gz"
               cp "$bin" "$dir/receivefiles"
-              (cd "$dir" && tar -czf "../release/$out_name" "receivefiles")
+              (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
             fi
 
             echo "Created: release/$out_name"
