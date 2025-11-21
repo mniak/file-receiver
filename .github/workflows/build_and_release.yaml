@@ -19,13 +19,13 @@ jobs:
         include:
           - os: ubuntu-latest
             suffix: linux_amd64
-          - os: windows-latest
-            suffix: windows_amd64.exe
-          - os: macos-latest
-            suffix: darwin_amd64
-          - os: macos-latest
-            suffix: darwin_arm64
-            goarch: arm64
+          # - os: windows-latest
+          #   suffix: windows_amd64.exe
+          # - os: macos-latest
+          #   suffix: darwin_amd64
+          # - os: macos-latest
+          #   suffix: darwin_arm64
+          #   goarch: arm64
 
     steps:
       - uses: actions/checkout@v4
