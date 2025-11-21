@@ -76,18 +76,17 @@ jobs:
         run: |
           tree build
           mkdir -p release
-          appname="receivefiles"
           for dirpath in ./build/*; do
             dir=$(basename "$dirpath")
-            bin="$dir/$appname.bin"
+            bin="$dir/receivefiles.bin"
             if [[ "$dir" == *windows* ]]; then
-              out_name="$appname_$dir.zip" 
-              mv "$bin" "$dir/$appname.exe"
-              (cd "$dir" && zip "../../release/$out_name" "$appname.exe")
+              out_name="receivefiles_$dir.zip" 
+              mv "$bin" "$dir/receivefiles.exe"
+              (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
             else
-              out_name="$appname_$dir.tar.gz"
-              mv "$bin" "$dir/$appname"
-              (cd "$dir" && tar -czf "../../release/$out_name" "$appname")
+              out_name="receivefiles_$dir.tar.gz"
+              mv "$bin" "$dir/receivefiles"
+              (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
             fi
             echo "Created: release/$out_name"
           done
