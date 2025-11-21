@@ -74,6 +74,10 @@ jobs:
       - name: Compress files
         shell: bash
         run: |
+          echo TREE
+          tree
+          echo -----------------
+
           mkdir -p release
           for dirpath in ./build/*; do
             dir=$(basename "$dirpath")
@@ -89,6 +93,10 @@ jobs:
             fi
             echo "Created: release/$out_name"
           done
+
+          echo TREE
+          tree
+          echo -----------------
 
       - name: Release
         uses: softprops/action-gh-release@v2
