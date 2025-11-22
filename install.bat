@@ -1,7 +1,7 @@
-@REM @echo off
+@echo off
 
 set BIN_DIR=C:\tools\bin
-set FILES_DIR=C:\ProgramData\ArquivosRecebidos
+set FILES_DIR=C:\ProgramData\Arquivos Recebidos
 set PORT=10777
 
 mkdir "%BIN_DIR%"
