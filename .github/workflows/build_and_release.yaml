@@ -82,10 +82,10 @@ jobs:
             asset=$(basename "${dir}")
             if [[ "$dir" == *windows* ]]; then
               asset_file="${asset}.zip" 
-              (cd "$dir/bin" && zip "../../../release/${asset_file}" "*")
+              (cd "$dir" && zip "../../release/${asset_file}" "*")
             else
               asset_file="${asset}.tar.gz"
-              (cd "$dir/bin" && tar -czf "../../../release/${asset_file}" "*")
+              (cd "$dir" && tar -czf "../../release/${asset_file}" "*")
             fi
             echo "Created: release/${asset_file}"
           done
