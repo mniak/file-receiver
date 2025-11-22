@@ -17,8 +17,8 @@ import (
 )
 
 type HttpParams struct {
-	Port             int
-	ReceivedFilesDir string
+	Port   int
+	SaveTo string
 }
 type HttpService struct {
 	HttpParams
@@ -27,7 +27,7 @@ type HttpService struct {
 }
 
 func (s *HttpService) Start() error {
-	if err := os.MkdirAll(s.ReceivedFilesDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(s.SaveTo, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -89,8 +89,8 @@ func (s *HttpService) postSubmit(c *gin.Context) {
 		c.Error(errors.WithMessage(err, "failed to get file"))
 		return
 	}
-	err = os.MkdirAll(s.ReceivedFilesDir, os.ModePerm)
-	dstPath := filepath.Join(s.ReceivedFilesDir, f.Filename)
+	err = os.MkdirAll(s.SaveTo, os.ModePerm)
+	dstPath := filepath.Join(s.SaveTo, f.Filename)
 	err = c.SaveUploadedFile(f, dstPath)
 	if err != nil {
 		c.Error(errors.WithMessage(err, "failed to save file"))
