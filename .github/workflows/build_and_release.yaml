@@ -45,7 +45,8 @@ jobs:
         run: |
           export GOARCH=${{ matrix.arch }}
           go generate ./...
-          go build -v -o receivefiles.bin .
+          mkdir build/
+          go build -v -o bin/ .
 
       - name: Test
         run: go test -v ./...
@@ -54,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}_${{ matrix.arch }}
-          path: receivefiles.bin
+          path: bin/*
           retention-days: 1
 
 
@@ -78,18 +79,15 @@ jobs:
 
           mkdir -p release
           for dir in ./build; do
-            base=$(basename "$dir")
-            bin="$dir/receivefiles.bin"
+            asset=$(basename "${dir}")
             if [[ "$dir" == *windows* ]]; then
-              out_name="receivefiles_$base.zip" 
-              mv "$bin" "$dir/receivefiles.exe"
-              (cd "$dir" && zip "../../release/$out_name" "receivefiles.exe")
+              asset_file="${asset}.zip" 
+              (cd "$dir/bin" && zip "../../../release/${asset_file}" "*")
             else
-              out_name="receivefiles_$base.tar.gz"
-              mv "$bin" "$dir/receivefiles"
-              (cd "$dir" && tar -czf "../../release/$out_name" "receivefiles")
+              asset_file="${asset}.tar.gz"
+              (cd "$dir/bin" && tar -czf "../../../release/${asset_file}" "*")
             fi
-            echo "Created: release/$out_name"
+            echo "Created: release/${asset_file}"
           done
 
           echo TREE
