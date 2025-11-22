@@ -40,7 +40,7 @@
             {{ end }}
 
             <!-- File upload box -->
-            <div
+           <label for="file-upload"
               class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-all duration-300">
               <!-- Icon for drag & drop -->
               <svg class="w-16 h-16 text-blue-500 mb-4 transition-all duration-300" xmlns="http://www.w3.org/2000/svg"
@@ -52,21 +52,21 @@
               <input id="file-upload" type="file" name="file" class="hidden" autocomplete="off" />
 
               <!-- Custom label for file upload -->
-              <label for="file-upload"
+              <div for="file-upload"
                 class="text-gray-600 cursor-pointer text-center hover:text-blue-600 transition-all duration-300">
                 <span class="block text-xl font-medium">Clique para selecionar</span>
                 <span class="block text-sm text-gray-400">Ou arraste o arquivo aqui</span>
-              </label>
+              </div>
 
               <!-- File name display -->
-              <div id="file-name" class="mt-3 text-gray-700 text-sm font-medium hidden">No file selected</div>
+              <div id="file-name" class="mt-3 text-gray-700 text-sm font-medium hidden">Nenhum arquivo selecionado</div>
             </div>
 
             <!-- Upload Button -->
             <button id="upload-btn"
               class="w-full mt-6 py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300"
               disabled="disabled">Enviar</button>
-          </div>
+          </label>
 
           <script>
             const fileInput = document.getElementById('file-upload');
