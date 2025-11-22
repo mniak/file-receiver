@@ -5,15 +5,10 @@
             "label": "Go Generate",
             "type": "shell",
             "command": "go generate ./...",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
             "presentation": {
-                "reveal": "always",
-                "panel": "new"
-            },
-            "problemMatcher": []
+                "reveal": "silent",
+                "clear": true
+            }
         }
     ]
 }

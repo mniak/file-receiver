@@ -2,6 +2,9 @@
 <html>
 
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IASD Cidade das Flores</title>
   <link href="./static/style.css" rel="stylesheet">
 </head>
 
@@ -12,23 +15,32 @@
       <form method="post" action="/submit" enctype="multipart/form-data" class="py-4 px-9">
         <div class="mb-5">
           <div class="mb-6 pt-4">
-            <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Enviar Arquivo para o Som</h2>
+            <h1 class="text-2xl font-semibold text-gray-800 text-center mb-6">IASD Cidade das Flores</h1>
+            <h2 class="text-2l font-semibold text-gray-800 text-center mb-6">Enviar Arquivo para o Som</h2>
 
             {{ if .SuccessText }}
             <!-- Alert Success -->
-            <div class="bg-green-200 px-6 py-4 mx-2 my-4 rounded-md text-lg flex items-center mx-auto max-w-lg">
+            <div id="success"
+              class="bg-green-200 px-6 py-4 mx-2 my-4 rounded-md text-lg flex items-center mx-auto max-w-lg">
               <svg viewBox="0 0 24 24" class="text-green-600 w-5 h-5 sm:w-5 sm:h-5 mr-3">
                 <path fill="currentColor"
                   d="M12,0A12,12,0,1,0,24,12,12.014,12.014,0,0,0,12,0Zm6.927,8.2-6.845,9.289a1.011,1.011,0,0,1-1.43.188L5.764,13.769a1,1,0,1,1,1.25-1.562l4.076,3.261,6.227-8.451A1,1,0,1,1,18.927,8.2Z">
                 </path>
               </svg>
               <span class="text-green-800">{{ .SuccessText }}</span>
+              <script>
+                setTimeout(() => {
+                  const url = new URL(window.location);
+                  url.searchParams.delete("sm");
+                  window.history.replaceState({}, "", url);
+                  document.getElementById("success").remove();
+                }, 10000);</script>
             </div>
             <!-- End Alert Success -->
             {{ end }}
 
             <!-- File upload box -->
-            <div
+           <label for="file-upload"
               class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-all duration-300">
               <!-- Icon for drag & drop -->
               <svg class="w-16 h-16 text-blue-500 mb-4 transition-all duration-300" xmlns="http://www.w3.org/2000/svg"
@@ -40,31 +52,29 @@
               <input id="file-upload" type="file" name="file" class="hidden" autocomplete="off" />
 
               <!-- Custom label for file upload -->
-              <label for="file-upload"
+              <div for="file-upload"
                 class="text-gray-600 cursor-pointer text-center hover:text-blue-600 transition-all duration-300">
                 <span class="block text-xl font-medium">Clique para selecionar</span>
                 <span class="block text-sm text-gray-400">Ou arraste o arquivo aqui</span>
-              </label>
+              </div>
 
               <!-- File name display -->
-              <div id="file-name" class="mt-3 text-gray-700 text-sm font-medium hidden">No file selected</div>
+              <div id="file-name" class="mt-3 text-gray-700 text-sm font-medium hidden">Nenhum arquivo selecionado</div>
             </div>
 
             <!-- Upload Button -->
             <button id="upload-btn"
               class="w-full mt-6 py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300"
               disabled="disabled">Enviar</button>
-          </div>
+          </label>
 
           <script>
-            console.log('script started');
             const fileInput = document.getElementById('file-upload');
             const fileNameDisplay = document.getElementById('file-name');
             const uploadButton = document.getElementById('upload-btn');
 
             // Display file name after selection
             fileInput.addEventListener('change', () => {
-              console.log("file niput changed to", fileInput);
               if (fileInput.files.length > 0) {
                 fileNameDisplay.textContent = fileInput.files[0].name;
                 fileNameDisplay.classList.remove('hidden');
