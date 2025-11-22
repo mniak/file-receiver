@@ -17,11 +17,11 @@ jobs:
       matrix:
         os: 
           - ubuntu
-          # - windows
-          # - macos
+          - windows
+          - macos
         arch:
           - amd64
-          # - arm64
+          - arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -45,8 +45,11 @@ jobs:
         run: |
           export GOARCH=${{ matrix.arch }}
           go generate ./...
-          mkdir build/
-          go build -v -o bin/ .
+          mkdir out/
+          go build -v -o out/ .
+          if [[ "${{ matrix.os }}" == "windows" ]]; then
+            cp *.bat out/
+          fi
 
       - name: Test
         run: go test -v ./...
@@ -55,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}_${{ matrix.arch }}
-          path: bin/*
+          path: out/*
           retention-days: 1
 
 
@@ -78,14 +81,15 @@ jobs:
           echo -----------------
 
           mkdir -p release
-          for dir in ./build; do
-            asset=$(basename "${dir}")
+          for dir in ./build/*; do
+            echo Iterating $dir
+            asset="ReceiveFiles.${GITHUB_REF_NAME}.$(basename "${dir}")"
             if [[ "$dir" == *windows* ]]; then
               asset_file="${asset}.zip" 
-              (cd "$dir" && zip "../../release/${asset_file}" "*")
+              (cd "$dir" && zip "../../release/${asset_file}" *)
             else
               asset_file="${asset}.tar.gz"
-              (cd "$dir" && tar -czf "../../release/${asset_file}" "*")
+              (cd "$dir" && tar -czf "../../release/${asset_file}" *)
             fi
             echo "Created: release/${asset_file}"
           done
