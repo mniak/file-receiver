@@ -1,8 +1,14 @@
-mkdir C:\tools
-mkdir C:\tools\bin
-copy receivefiles.exe C:\tools\bin\receivefiles.exe
+@REM @echo off
 
-echo sc create ReceiveFiles ^
-    binPath="\"C:\tools\bin\receivefiles.exe" service --port 10888" ^
+set BIN_DIR=C:\tools\bin
+set FILES_DIR=C:\ProgramData\ArquivosRecebidos
+set PORT=10777
+
+mkdir "%BIN_DIR%"
+mkdir "%FILES_DIR%"
+copy receivefiles.exe %BIN_DIR%\receivefiles.exe
+
+sc create ReceiveFiles ^
+    binPath="\"C:\tools\bin\receivefiles.exe\" service --port %PORT% --save-to=\"%FILES_DIR%\"" ^
     start=delayed-auto
-echo sc start ReceiveFiles
+sc start ReceiveFiles
