@@ -17,8 +17,8 @@ import (
 )
 
 type HttpParams struct {
-	Port             int
-	ReceivedFilesDir string
+	Port   int
+	SaveTo string
 }
 type HttpService struct {
 	HttpParams
@@ -27,7 +27,9 @@ type HttpService struct {
 }
 
 func (s *HttpService) Start() error {
-	os.MkdirAll(s.ReceivedFilesDir, os.ModePerm)
+	if err := os.MkdirAll(s.SaveTo, os.ModePerm); err != nil {
+		return err
+	}
 
 	r := gin.Default()
 	r.LoadHTMLFS(http.FS(tmpl.FS()), "*.html")
@@ -87,12 +89,12 @@ func (s *HttpService) postSubmit(c *gin.Context) {
 		c.Error(errors.WithMessage(err, "failed to get file"))
 		return
 	}
-	dstPath := filepath.Join(s.ReceivedFilesDir, f.Filename)
+	err = os.MkdirAll(s.SaveTo, os.ModePerm)
+	dstPath := filepath.Join(s.SaveTo, f.Filename)
 	err = c.SaveUploadedFile(f, dstPath)
 	if err != nil {
 		c.Error(errors.WithMessage(err, "failed to save file"))
 		return
-
 	}
 	q := make(url.Values)
 	q.Add(qSuccessMessage, fmt.Sprintf("Arquivo '%s' enviado!", f.Filename))

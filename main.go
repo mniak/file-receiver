@@ -18,7 +18,7 @@ func main() {
 		Use: "receivefiles",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			p.ReceivedFilesDir, err = filepath.Abs(p.ReceivedFilesDir)
+			p.SaveTo, err = filepath.Abs(p.SaveTo)
 			if err != nil {
 				return err
 			}
@@ -33,14 +33,14 @@ func main() {
 			url := "https://flores7.mniak.dev"
 			fmt.Printf("Access %s to send files\nor scan the QR Code below\n", url)
 			showQRCode(url)
-			fmt.Printf("The files will be stored on %s\n", p.ReceivedFilesDir)
+			fmt.Printf("The files will be stored on %s\n", p.SaveTo)
 
 			cobra.CheckErr(app.Start())
 			cobra.CheckErr(app.Wait())
 		},
 	}
 	cmd.PersistentFlags().IntVar(&p.Port, "port", 10777, "HTTP port of the server")
-	cmd.PersistentFlags().StringVar(&p.ReceivedFilesDir, "save-to", "./uploads", "Where to save the received files")
+	cmd.PersistentFlags().StringVar(&p.SaveTo, "save-to", "./uploads", "Where to save the received files")
 
 	svcCmd := cobra.Command{
 		Use: "service",
